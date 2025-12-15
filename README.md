@@ -1,102 +1,67 @@
+
 # gotra-notifications
 
-Paket npm TypeScript untuk integrasi layanan pesan WhatsApp.
+A simple TypeScript package for integrating WhatsApp messaging services via API.
 
-## Instalasi
+## Installation
 
-### Dari npm (jika sudah publish)
-```bash
-npm install gotra-notifications
-```
+### From GitHub (recommended for latest version)
 
-### Dari GitHub (untuk development atau versi terbaru)
 ```bash
 npm install https://github.com/ivan-primaturangga/gotra-notifications.git
 ```
 
-## Konfigurasi
+## Usage
 
-### Untuk Node.js
-Set environment variables:
-```env
-WHATSAPP_API_URL=https://your-whatsapp-api.com/api
-WHATSAPP_API_KEY=your_api_key_here
+### 1. Set Environment Variables (Recommended)
+
+Create a `.env` file in your project root:
+
 ```
-
-### Untuk Browser/Vite
-Buat file `.env` di root project:
-```env
 VITE_WHATSAPP_API_URL=https://your-whatsapp-api.com/api
 VITE_WHATSAPP_API_KEY=your_api_key_here
 ```
 
-## Penggunaan
+For Node.js, use `WHATSAPP_API_URL` and `WHATSAPP_API_KEY` instead.
 
-### Node.js (dengan env vars)
+### 2. Import and Use the Service
+
 ```typescript
 import WhatsAppService from 'gotra-notifications';
 
-const whatsApp = new WhatsAppService();
+// If using environment variables, you can instantiate without parameters
+const wa = new WhatsAppService();
 
-async function kirimPesan() {
-  try {
-    const result = await whatsApp.sendMessage({
-      sessionId: 'session123',
-      to: '6281234567890',
-      message: 'Halo dari paket npm!'
-    });
+// Or pass API URL and Key directly
+// const wa = new WhatsAppService('https://your-whatsapp-api.com/api', 'your_api_key_here');
 
-    console.log('Berhasil:', result);
-  } catch (error) {
-    console.error('Error:', error.message);
-  }
-}
+// Send a text message
+wa.sendMessage({
+  sessionId: 'session123',
+  to: '6281234567890',
+  message: 'Hello from gotra-notifications!'
+}).then(console.log).catch(console.error);
 ```
 
-### Browser/Vite (dengan env vars)
+### 3. Send Media or Location
+
 ```typescript
-import WhatsAppService from 'gotra-notifications';
-
-const whatsApp = new WhatsAppService();
-
-// Sama seperti Node.js, env vars otomatis dibaca
-```
-
-### Dengan Parameter Langsung
-```typescript
-import WhatsAppService from 'gotra-notifications';
-
-const whatsApp = new WhatsAppService(
-  'https://your-whatsapp-api.com/api',
-  'your_api_key_here'
-);
-```
-
-### Kirim Media
-```typescript
-const result = await whatsApp.sendMedia({
+// Send media
+wa.sendMedia({
   sessionId: 'session123',
   to: '6281234567890',
   mediaUrl: 'https://example.com/image.jpg',
-  caption: 'Ini gambar'
+  caption: 'Check this out!'
 });
-```
 
-### Kirim Lokasi
-```typescript
-const result = await whatsApp.sendLocation({
+// Send location
+wa.sendLocation({
   sessionId: 'session123',
   to: '6281234567890',
-  latitude: -6.2088,
-  longitude: 106.8456,
+  latitude: -6.2,
+  longitude: 106.8,
   description: 'Jakarta'
 });
-```
-
-### Update Konfigurasi
-```typescript
-whatsApp.setApiUrl('https://new-api.com/api');
-whatsApp.setApiKey('new-key');
 ```
 
 ## API Reference
@@ -104,52 +69,236 @@ whatsApp.setApiKey('new-key');
 ### WhatsAppService
 
 #### Constructor
+`new WhatsAppService(apiUrl?: string, apiKey?: string)`
+
+#### Methods
+- `sendMessage(params: SendMessageParams): Promise<ApiResponse>`
+- `sendMedia(params: SendMediaParams): Promise<ApiResponse>`
+- `sendLocation(params: SendLocationParams): Promise<ApiResponse>`
+- `setApiKey(apiKey: string): void`
+- `setApiUrl(url: string): void`
+
+### Interfaces
+
+```typescript
+interface SendMessageParams {
+  sessionId: string;
+  to: string;
+  message: string;
+}
+
+interface SendMediaParams {
+  sessionId: string;
+  to: string;
+  mediaUrl: string;
+  caption?: string;
+}
+
+interface SendLocationParams {
+  sessionId: string;
+  to: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
+```
+
+## Error Handling
+
+If required parameters are missing, the constructor will throw an error:
+
+- `WHATSAPP_API_URL is required`
+- `WHATSAPP_API_KEY is required`
+
+Always wrap your API calls in try/catch or handle `.catch()` for promise rejections.
+
+## License
+
+MIT
+
+## Installation
+
+```bash
+npm install @gotra/notifications
+```
+
+For development linking:
+```bash
+npm link @gotra/notifications
+```
+
+## Configuration
+
+Set environment variables in your project:
+
+```env
+WHATSAPP_API_URL=https://your-whatsapp-api.com/api
+WHATSAPP_API_KEY=your_api_key_here
+```
+
+## Usage
+
+### Using Environment Variables (Recommended for Node.js)
+
+```typescript
+import WhatsAppService from '@gotra/notifications';
+
+// No need to pass parameters if env vars are set
+const whatsAppService = new WhatsAppService();
+
+async function sendMessage() {
+  try {
+    const result = await whatsAppService.sendMessage({
+      sessionId: 'session123',
+      to: '6281234567890',
+      message: 'Hello from npm package!'
+    });
+
+    console.log('Success:', result);
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+```
+
+### Passing Parameters Directly
+
+```typescript
+import WhatsAppService from '@gotra/notifications';
+
+const whatsAppService = new WhatsAppService(
+  'https://your-whatsapp-api.com/api',
+  'your_api_key_here'
+);
+```
+
+### Custom Configuration
+
+```typescript
+// Update API settings after initialization
+whatsAppService.setApiUrl('https://new-api.com/api');
+whatsAppService.setApiKey('new-api-key');
+```
+
+## API Reference
+
+### WhatsAppService Class
+
+#### Constructor
 ```typescript
 new WhatsAppService(apiUrl?: string, apiKey?: string)
 ```
 
 #### Methods
-- `sendMessage(params)` - Kirim pesan teks
-- `sendMedia(params)` - Kirim media
-- `sendLocation(params)` - Kirim lokasi
-- `setApiKey(key)` - Set API key baru
-- `setApiUrl(url)` - Set API URL baru
 
-## Penanganan Error
+##### sendMessage(params: SendMessageParams): Promise<ApiResponse>
+Send a text message.
 
-### Error Umum
-- **WHATSAPP_API_URL is required**: Set `WHATSAPP_API_URL` atau `VITE_WHATSAPP_API_URL`
-- **WHATSAPP_API_KEY is required**: Set `WHATSAPP_API_KEY` atau `VITE_WHATSAPP_API_KEY`
-- **Network errors**: Cek koneksi internet dan URL API
-- **API errors**: Cek response dari API WhatsApp
+**Parameters:**
+- `sessionId: string` - Session identifier
+- `to: string` - Recipient phone number
+- `message: string` - Message content
 
+##### sendMedia(params: SendMediaParams): Promise<ApiResponse>
+Send media (image, video, document).
+
+**Parameters:**
+- `sessionId: string` - Session identifier
+- `to: string` - Recipient phone number
+- `mediaUrl: string` - URL of the media file
+- `caption?: string` - Optional caption
+
+##### sendLocation(params: SendLocationParams): Promise<ApiResponse>
+Send location coordinates.
+
+**Parameters:**
+- `sessionId: string` - Session identifier
+- `to: string` - Recipient phone number
+- `latitude: number` - Latitude coordinate
+- `longitude: number` - Longitude coordinate
+- `description?: string` - Optional location description
+
+##### setApiKey(apiKey: string): void
+Set a custom API key.
+
+##### setApiUrl(url: string): void
+Set a custom API URL.
+
+### Interfaces
+
+#### SendMessageParams
 ```typescript
-try {
-  const result = await whatsApp.sendMessage(params);
-  if (!result.success) {
-    console.error('API Error:', result.message);
-  }
-} catch (error) {
-  console.error('Error:', error.message);
+interface SendMessageParams {
+  sessionId: string;
+  to: string;
+  message: string;
 }
 ```
 
-## Troubleshooting
+#### SendMediaParams
+```typescript
+interface SendMediaParams {
+  sessionId: string;
+  to: string;
+  mediaUrl: string;
+  caption?: string;
+}
+```
 
-### Package tidak bisa install dari GitHub
-- Pastikan repo GitHub public
-- Cek apakah `dist/` folder ada di repo
-- Jalankan `npm run build` di repo lokal sebelum push
+#### SendLocationParams
+```typescript
+interface SendLocationParams {
+  sessionId: string;
+  to: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+}
+```
 
-### Error di browser
-- Pastikan env vars menggunakan prefix `VITE_`
-- Restart dev server setelah ubah `.env`
+#### ApiResponse<T>
+```typescript
+interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
+```
 
-### API tidak merespons
-- Verifikasi URL dan API key
-- Cek dokumentasi API WhatsApp yang digunakan
-- Pastikan sessionId valid
+## Error Handling
 
-## Lisensi
+The constructor will throw errors if required parameters are missing:
+
+- `apiUrl is required`
+- `apiKey is required`
+
+Handle API errors appropriately in your application:
+
+```typescript
+try {
+  const result = await whatsAppService.sendMessage(params);
+  if (!result.success) {
+    console.error('API Error:', result.error);
+  }
+} catch (error) {
+  console.error('Network Error:', error.message);
+}
+```
+
+## License
 
 MIT
