@@ -1,0 +1,27 @@
+{
+  "name": "@gotra/notifications",
+  "version": "1.0.0",
+  "description": "WhatsApp notification service package",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests specified\""
+  },
+  "keywords": [
+    "whatsapp",
+    "notification",
+    "api"
+  ],
+  "author": "gotrasoft",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.9.0",
+    "@types/node": "^18.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
