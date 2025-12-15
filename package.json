@@ -1,5 +1,5 @@
 {
-  "name": "@gotra/notifications",
+  "name": "gotra-notifications",
   "version": "1.0.0",
   "description": "WhatsApp notification service package",
   "type": "module",
