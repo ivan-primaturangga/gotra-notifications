@@ -33,10 +33,19 @@ class WhatsAppService {
                 },
                 body: JSON.stringify(data),
             });
-            const result = await response.json();
             if (!response.ok) {
-                throw new Error(result.message || 'API request failed');
+                let errorMessage = `API request failed with status ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                }
+                catch {
+                    // If response is not JSON, use status text
+                    errorMessage = response.statusText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
+            const result = await response.json();
             return result;
         }
         catch (error) {
