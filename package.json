@@ -1,6 +1,6 @@
 {
   "name": "gotra-notifications",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "WhatsApp notification service package",
   "type": "module",
   "main": "dist/index.js",
