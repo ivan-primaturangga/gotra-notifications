@@ -1,4 +1,170 @@
-### Contoh React: Auto Cek Status QR
+
+# gotra-notifications
+
+A simple TypeScript package for integrating WhatsApp messaging services via API, termasuk fitur scan QR code WhatsApp yang bisa digunakan di Node.js, browser, atau React.
+
+## Fitur Utama
+
+- Kirim pesan WhatsApp (teks, media, lokasi)
+- Scan QR code WhatsApp (untuk autentikasi device/session)
+- Dukungan Node.js, browser, dan React
+
+---
+
+## Instalasi
+
+```bash
+npm install https://github.com/ivan-primaturangga/gotra-notifications.git
+```
+
+---
+
+## Penggunaan Dasar
+
+### 1. Set Environment Variables (Recommended)
+
+Buat file `.env` di root project Anda:
+
+```
+VITE_WHATSAPP_API_URL=https://your-whatsapp-api.com/api
+VITE_WHATSAPP_API_KEY=your_api_key_here
+```
+
+Untuk Node.js, gunakan `WHATSAPP_API_URL` dan `WHATSAPP_API_KEY`.
+
+### 2. Import dan Gunakan Service
+
+```typescript
+import WhatsAppService from 'gotra-notifications';
+
+// Jika pakai env, bisa tanpa parameter
+const wa = new WhatsAppService();
+
+// Atau langsung dengan API URL & Key
+// const wa = new WhatsAppService('https://your-whatsapp-api.com/api', 'your_api_key_here');
+
+// Kirim pesan teks
+wa.sendMessage({
+  sessionId: 'session123',
+  to: '6281234567890',
+  message: 'Hello from gotra-notifications!'
+}).then(console.log).catch(console.error);
+```
+
+### 3. Kirim Media atau Lokasi
+
+```typescript
+// Kirim media
+wa.sendMedia({
+  sessionId: 'session123',
+  to: '6281234567890',
+  mediaUrl: 'https://example.com/image.jpg',
+  caption: 'Check this out!'
+});
+
+// Kirim lokasi
+wa.sendLocation({
+  sessionId: 'session123',
+  to: '6281234567890',
+  latitude: -6.2,
+  longitude: 106.8,
+  description: 'Jakarta'
+});
+```
+
+---
+
+## Fitur Scan QR Code WhatsApp
+
+Modul QrSession memudahkan Anda untuk melakukan autentikasi WhatsApp via QR code di berbagai environment.
+
+### Import
+
+```typescript
+import { QrSession } from 'gotra-notifications';
+```
+
+### Cara Pakai (Node.js/Browser/JS Umum)
+
+```typescript
+const session = new QrSession({
+  sessionId: 'session123',
+  apiUrl: 'https://your-whatsapp-api.com/api',
+  apiKey: 'your_api_key_here',
+});
+
+// Mulai session dan dapatkan endpoint QR
+const { qrEndpoint } = await session.startSession();
+
+// Ambil string QR code
+const qrString = await session.loadQRCode(qrEndpoint);
+
+// Tampilkan qrString menggunakan library QR code (misal: qrcode.react, qrcodejs, dsb)
+
+// Cek status session (apakah sudah scan/terautentikasi)
+const status = await session.checkStatus();
+if (status.status === 'authenticated' || status.status === 'ready') {
+  // Sudah scan QR dan siap digunakan
+}
+```
+
+### Catatan
+- Untuk menampilkan QR code di browser, gunakan library seperti `qrcode.react` (React), `qrcodejs`, atau library QR code lain.
+- Modul ini hanya menangani logic backend/API, tidak menampilkan QR code visual.
+
+---
+
+## Contoh Implementasi di React
+
+### Sederhana (Tampilkan QR Code)
+
+```tsx
+import React, { useState } from 'react';
+import { QrSession } from 'gotra-notifications';
+import QRCode from 'react-qr-code'; // install: npm install react-qr-code
+
+const session = new QrSession({
+  sessionId: 'session123',
+  apiUrl: 'https://your-whatsapp-api.com/api',
+  apiKey: 'your_api_key_here',
+});
+
+export function QRCodeScan() {
+  const [qrString, setQrString] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleStart = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { qrEndpoint } = await session.startSession();
+      const qr = await session.loadQRCode(qrEndpoint);
+      setQrString(qr);
+    } catch (err: any) {
+      setError(err.message || 'Gagal memulai session');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={handleStart} disabled={loading}>
+        {loading ? 'Loading...' : 'Tampilkan QR Code'}
+      </button>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {qrString && (
+        <div style={{ marginTop: 16 }}>
+          <QRCode value={qrString} size={256} />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Dengan Auto Cek Status (Polling)
 
 Contoh berikut menambahkan pengecekan status session secara otomatis (polling) setelah QR code ditampilkan. Jika status sudah 'authenticated' atau 'ready', akan muncul notifikasi sukses.
 
@@ -80,57 +246,95 @@ export function QRCodeScanWithStatus() {
   );
 }
 ```
-## Contoh Implementasi di React
 
-Berikut contoh sederhana integrasi logic QrSession dengan komponen React dan library QR code:
+---
 
-```tsx
-import React, { useState } from 'react';
-import { QrSession } from 'gotra-notifications';
-import QRCode from 'react-qr-code'; // install: npm install react-qr-code
+## API Reference
 
-const session = new QrSession({
-  sessionId: 'session123',
-  apiUrl: 'https://your-whatsapp-api.com/api',
-  apiKey: 'your_api_key_here',
-});
+### WhatsAppService
 
-export function QRCodeScan() {
-  const [qrString, setQrString] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+#### Constructor
+`new WhatsAppService(apiUrl?: string, apiKey?: string)`
 
-  const handleStart = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { qrEndpoint } = await session.startSession();
-      const qr = await session.loadQRCode(qrEndpoint);
-      setQrString(qr);
-    } catch (err: any) {
-      setError(err.message || 'Gagal memulai session');
-    } finally {
-      setLoading(false);
-    }
+#### Methods
+- `sendMessage(params: SendMessageParams): Promise<ApiResponse>`
+- `sendMedia(params: SendMediaParams): Promise<ApiResponse>`
+- `sendLocation(params: SendLocationParams): Promise<ApiResponse>`
+- `setApiKey(apiKey: string): void`
+- `setApiUrl(url: string): void`
+
+### QrSession
+- `startSession(): Promise<QrSessionResult>`
+- `loadQRCode(qrEndpoint: string): Promise<string>`
+- `checkStatus(): Promise<QrSessionStatus>`
+
+### Interfaces
+
+```typescript
+interface SendMessageParams {
+  sessionId: string;
+  to: string;
+  message: string;
+}
+
+interface SendMediaParams {
+  sessionId: string;
+  to: string;
+  mediaUrl: string;
+  caption?: string;
+}
+
+interface SendLocationParams {
+  sessionId: string;
+  to: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+}
+
+interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: {
+    code: string;
+    details: string;
   };
+}
 
-  return (
-    <div>
-      <button onClick={handleStart} disabled={loading}>
-        {loading ? 'Loading...' : 'Tampilkan QR Code'}
-      </button>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      {qrString && (
-        <div style={{ marginTop: 16 }}>
-          <QRCode value={qrString} size={256} />
-        </div>
-      )}
-    </div>
-  );
+interface QrSessionOptions {
+  sessionId: string;
+  apiUrl: string;
+  apiKey: string;
+}
+
+interface QrSessionResult {
+  qr: string;
+  qrEndpoint: string;
+}
+
+interface QrSessionStatus {
+  status: string;
+  [key: string]: any;
 }
 ```
 
-Anda bisa menambahkan pengecekan status session dengan memanggil `session.checkStatus()` sesuai kebutuhan.
+---
+
+## Error Handling
+
+Jika parameter wajib tidak diisi, constructor akan melempar error:
+
+- `WHATSAPP_API_URL is required`
+- `WHATSAPP_API_KEY is required`
+
+Selalu gunakan try/catch atau .catch() untuk menangani error dari promise.
+
+---
+
+## License
+
+MIT
 
 # gotra-notifications
 
