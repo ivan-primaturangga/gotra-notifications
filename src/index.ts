@@ -154,4 +154,6 @@ class WhatsAppService {
   }
 }
 
+
+export { QrSession } from './qrSession';
 export default WhatsAppService;
